@@ -290,6 +290,11 @@ bool MasterNodesWidget::startAll(QString& failText, bool onlyMissing)
             continue;
         }
 
+        //Final check for status or service changes
+        if (mnModel->IsMnEnabled(mnAlias) && !mnModel->hasServiceDataChange(mneConf)) {
+            continue;
+        }
+        
         std::string strError;
         if (!startMN(mne, strError)) {
             amountOfMnFailed++;
