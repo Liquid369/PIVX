@@ -178,6 +178,7 @@ UniValue listmasternodes(const JSONRPCRequest& request)
             "    \"pubkey\": \"key\",                     (string) Masternode public key used for message broadcasting\n"
             "    \"status\": s,                           (string) Status (ENABLED/EXPIRED/REMOVE/etc)\n"
             "    \"addr\": \"addr\",                      (string) Masternode PIVX address\n"
+            "    \"ip\": \"ip\",                          (string) Masternode IP address\n"
             "    \"version\": v,                          (numeric) Masternode protocol version\n"
             "    \"lastseen\": ttt,     (numeric) The time in seconds since epoch (Jan 1 1970 GMT) of the last seen\n"
             "    \"activetime\": ttt,   (numeric) The time in seconds since epoch (Jan 1 1970 GMT) masternode has been active\n"
@@ -260,6 +261,7 @@ UniValue listmasternodes(const JSONRPCRequest& request)
         obj.pushKV("pubkey", EncodeDestination(mn.pubKeyMasternode.GetID()));
         obj.pushKV("status", strStatus);
         obj.pushKV("addr", EncodeDestination(mn.pubKeyCollateralAddress.GetID()));
+        obj.pushKV("ip", mn.addr.ToString());
         obj.pushKV("version", mn.protocolVersion);
         obj.pushKV("lastseen", (int64_t)mn.lastPing.sigTime);
         obj.pushKV("activetime", (int64_t)(mn.lastPing.sigTime - mn.sigTime));
