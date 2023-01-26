@@ -22,7 +22,7 @@ ProposalInfoDialog::ProposalInfoDialog(QWidget *parent) :
     setCssProperty({ui->labelAmount, ui->labelName, ui->labelUrl, ui->labelRecipient, ui->labelPosVotes, ui->labelId, ui->labelNegVotes, ui->labelEndDate, ui->labelDate, ui->labelStatus}, "text-subtitle");
     setCssProperty({ui->labelDividerID, ui->labelDividerName, ui->labelDividerRecipient, ui->labelDividerChange, ui->labelDividerMemo}, "container-divider");
     setCssProperty({ui->textAmount, ui->textName, ui->textUrl, ui->textRecipient, ui->textPosVotes, ui->textId, ui->textNegVotes, ui->textEndDate, ui->textDate, ui->textStatus} , "text-body3-dialog");
-    setCssProperty({ui->pushCopy, ui->btnUrlCopy, ui->btnNameCopy}, "ic-copy-big");
+    setCssProperty({ui->pushCopy, ui->btnUrlCopy, ui->btnNameCopy, ui->btnRecipientCopy}, "ic-copy-big");
     setCssProperty(ui->btnEsc, "ic-close");
     connect(ui->btnEsc, &QPushButton::clicked, this, &ProposalInfoDialog::close);
     connect(ui->pushCopy, &QPushButton::clicked, [this](){
@@ -36,6 +36,10 @@ ProposalInfoDialog::ProposalInfoDialog(QWidget *parent) :
     connect(ui->btnNameCopy, &QPushButton::clicked, [this](){
         GUIUtil::setClipboard(QString::fromStdString(info.name));
         inform("URL copied to clipboard");
+    });
+    connect(ui->btnRecipientCopy, &QPushButton::clicked, [this]() {
+        GUIUtil::setClipboard(QString::fromStdString(info.recipientAdd));
+        inform("Recipient copied to clipboard");
     });
 }
 
