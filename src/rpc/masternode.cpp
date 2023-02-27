@@ -411,11 +411,6 @@ void SerializeMNB(UniValue& statusObjRet, const CMasternodeBroadcast& mnb, const
 
 UniValue startmasternode(const JSONRPCRequest& request)
 {
-    // Skip after legacy obsolete. !TODO: remove when transition to DMN is complete
-    if (deterministicMNManager->LegacyMNObsolete()) {
-        throw JSONRPCError(RPC_MISC_ERROR, "startmasternode is not supported when deterministic masternode list is active (DIP3)");
-    }
-
     CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
@@ -459,6 +454,13 @@ UniValue startmasternode(const JSONRPCRequest& request)
 
             "\nExamples:\n" +
             HelpExampleCli("startmasternode", "\"alias\" false \"my_mn\"") + HelpExampleRpc("startmasternode", "\"alias\" false \"my_mn\""));
+
+    // Checked after the help block so `help startmasternode` returns usage rather than
+    // RPC_MISC_ERROR once SPORK_21 has retired the legacy masternode system.
+    // !TODO: remove when transition to DMN is complete
+    if (deterministicMNManager->LegacyMNObsolete()) {
+        throw JSONRPCError(RPC_MISC_ERROR, "startmasternode is not supported when deterministic masternode list is active (DIP3)");
+    }
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VBOOL, UniValue::VSTR, UniValue::VBOOL}, true);
 
