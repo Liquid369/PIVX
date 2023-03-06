@@ -115,6 +115,55 @@ port=10001
 Configuring Masternodes is also very important to make sure that we are properly routing information so the Masternodes are available to the network and giving some users the capability to run more than one per server.
 
 ### Masternode Wallet PIVX.conf
+In order to get your Onion address, you can load your wallet without the masternode params and use the RPC command ```getnetworkinfo```
+
+Response example:
+```
+getnetworkinfo
+{
+  "version": 5050000,
+  "subversion": "/PIVX Core:5.5.0/",
+  "protocolversion": 70926,
+  "localservices": "0000000000000005",
+  "timeoffset": 0,
+  "networkactive": true,
+  "connections": 16,
+  "networks": [
+    {
+      "name": "ipv4",
+      "limited": false,
+      "reachable": true,
+      "proxy": "127.0.0.1:9050",
+      "proxy_randomize_credentials": true
+    },
+    {
+      "name": "ipv6",
+      "limited": false,
+      "reachable": true,
+      "proxy": "127.0.0.1:9050",
+      "proxy_randomize_credentials": true
+    },
+    {
+      "name": "onion",
+      "limited": false,
+      "reachable": true,
+      "proxy": "127.0.0.1:9050",
+      "proxy_randomize_credentials": true
+    }
+  ],
+  "relayfee": 0.00010000,
+  "localaddresses": [
+     {
+      "address": "oyie3w4wutittqgr2usb3ieyhib32sb3n4jpbquwf7vfvbmsvakjazad.onion",
+      "port": 51472,
+      "score": 4
+    }
+  ],
+  "warnings": ""
+}
+```
+You can see your Tor address in the field ```"address":``` that contains the long string ending in .onion
+
 Below is a sample configuration:
 ```
 rpcuser=123456
