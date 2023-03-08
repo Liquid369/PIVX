@@ -23,9 +23,12 @@ The TOR project has become more simplified in its releases over time to where it
 
 ## Configuring Tor Process
 Based on your needs, configuring the TOR process is not that difficult thankfully. In most regards configuring the Hidden Service and Port is majority necessary to mess with. You can find each portion below
+
 For Mac users the directories for the Config and TOR are as follows:
+
 Config File:
 ```/etc/tor/torrc```
+
 Service Directory:
 ```/var/lib/tor/```
 
@@ -101,7 +104,7 @@ proxy=127.0.0.1:9050
 listen=1
 rpcport=12001
 rpcallowip=127.0.0.1
-port=10001
+port=10000
 ```
 ```RPCPort=``` and ```Port=``` must be a different port for each node. The ```Port=``` option must match a HiddenServicePort as defined in your Tor config.
 
@@ -168,7 +171,7 @@ proxy=127.0.0.1:9050
 listen=1
 rpcport=12001
 rpcallowip=127.0.0.1
-port=10001
+port=10000
 masternode=1
 masternodeaddr=<onion_address>:51472
 masternodeprivkey=<mastrnodeprivkey>

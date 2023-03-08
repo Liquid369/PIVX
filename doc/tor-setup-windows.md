@@ -101,7 +101,7 @@ Right-click on the Start button to open the WinX Menu
 Select Run
 Type services.msc in the Run box which opens
 Windows Services Manager will open.
-There should be a tor service in the entire list, that we can then right-click and start/enable it. If it is already listed as running, we would want to restart it.
+There should be a tor service in the entire list, right click in the service in Window Services and go to Properties. Then go to Log On tab and select Local System account. Click on Ok button and start the service.
 
 If you found the service but it does not want to start. Those with the Command Prompt still open can additionally try to start Tor by entering the command:
 ```tor.exe -f torrc```
@@ -122,7 +122,7 @@ proxy=127.0.0.1:9050
 listen=1
 rpcport=12001
 rpcallowip=127.0.0.1
-port=10001
+port=10000
 ```
 ```RPCPort=``` and ```Port=``` must be a different port for each node. The ```Port=``` option must match a HiddenServicePort as defined in your Tor config.
 
@@ -189,7 +189,7 @@ proxy=127.0.0.1:9050
 listen=1
 rpcport=12001
 rpcallowip=127.0.0.1
-port=10001
+port=10000
 masternode=1
 masternodeaddr=<onion_address>:51472
 masternodeprivkey=<mastrnodeprivkey>
