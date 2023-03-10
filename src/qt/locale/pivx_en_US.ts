@@ -6152,10 +6152,10 @@ PIVX Core Wallet</translation>
     <message>
         <source>Cannot find the Sapling parameters in the following directory:
 %s
-Please run 'sapling-fetch-params' or './util/fetch-params.sh' and then restart.</source>
+Please run './install-params.sh' in the PIVX extracted folder and then restart.</source>
         <translation>Cannot find the Sapling parameters in the following directory:
 %s
-Please run 'sapling-fetch-params' or './util/fetch-params.sh' and then restart.</translation>
+Please run './install-params.sh' in the PIVX extracted folder and then restart.</translation>
     </message>
     <message>
         <source>Cannot upgrade to Sapling wallet (already running Sapling support). Version: %d</source>

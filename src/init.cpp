@@ -744,7 +744,7 @@ static void LoadSaplingParams()
         uiInterface.ThreadSafeMessageBox(strprintf(
                 _("Cannot find the Sapling parameters in the following directory:\n"
                   "%s\n"
-                  "Please run 'sapling-fetch-params' or './util/fetch-params.sh' and then restart."),
+                  "Please run './install-params.sh' in the PIVX extracted folder and then restart."),
                 ZC_GetParamsDir()),
                                          "", CClientUIInterface::MSG_ERROR);
         StartShutdown();
