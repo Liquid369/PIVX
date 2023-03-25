@@ -28,14 +28,10 @@ void InitLLMQSystem(CEvoDB& evoDb, bool unitTests)
     quorumManager.reset(new CQuorumManager(evoDb, *blsWorker, *quorumDKGSessionManager));
     quorumSigSharesManager = new CSigSharesManager();
     quorumSigningManager = new CSigningManager(unitTests);
-    quorumSigSharesManager->StartWorkerThread();
 }
 
 void DestroyLLMQSystem()
 {
-    if (quorumSigSharesManager) {
-        quorumSigSharesManager->StopWorkerThread();
-    }
     delete quorumSigningManager;
     quorumSigningManager = nullptr;
     delete quorumSigSharesManager;
@@ -56,12 +52,18 @@ void StartLLMQSystem()
     if (quorumDKGSessionManager) {
         quorumDKGSessionManager->StartThreads();
     }
+    if (quorumSigSharesManager) {
+        quorumSigSharesManager->StartWorkerThread();
+    }
 }
 
 void StopLLMQSystem()
 {
     if (quorumDKGSessionManager) {
         quorumDKGSessionManager->StopThreads();
+    }
+    if (quorumSigSharesManager) {
+        quorumSigSharesManager->StopWorkerThread();
     }
     if (blsWorker) {
         blsWorker->Stop();
