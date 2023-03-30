@@ -8,6 +8,7 @@ from test_framework.test_framework import PivxDMNTestFramework
 from test_framework.util import (
     assert_equal,
 )
+import time
 
 
 class SigningSessionTest(PivxDMNTestFramework):
@@ -37,8 +38,7 @@ class SigningSessionTest(PivxDMNTestFramework):
         self.log.info("----------------------------------")
         self.log.info("----- (1) First signing session started -----")
         self.log.info("----------------------------------")
-        miner.generate(5)
-        self.sync_blocks()
+        time.sleep(5)
 
         # First scenario: ALL nodes agree on the msgHash of a given session-id
         id = "0000000000000000000000000000000000000000000000000000000000000001"
@@ -54,8 +54,7 @@ class SigningSessionTest(PivxDMNTestFramework):
         self.log.info("finished signing")
         # At this point a recovery trheshold signaure should have been generated and propagated to the whole network
         # Let's generate some blocks to ensure that nodes are synced
-        miner.generate(5)
-        self.sync_blocks()
+        time.sleep(5)
         for i in range(len(self.nodes)):
             assert_equal(True, self.nodes[i].quorum_sigs_cmd("hasrecsig", 100, id, msgHash))
 
@@ -88,8 +87,7 @@ class SigningSessionTest(PivxDMNTestFramework):
 
         # Since with this quorum type 2 nodes are enough to generate the treshold signature at the end every node MUST agree on (id, msgHash)
         # Let's wait a bit to sync all messages
-        miner.generate(5)
-        self.sync_blocks()
+        time.sleep(5)
         for i in range(len(self.nodes)):
             assert_equal(True, self.nodes[i].quorum_sigs_cmd("hasrecsig", 100, id, msgHash))
         self.log.info("Threshold signature succesfully generated and propagated!")
@@ -98,8 +96,7 @@ class SigningSessionTest(PivxDMNTestFramework):
         # it must be valid if we generate enough quorums to push the first one out of the active set
         self.mine_quorum()
         self.mine_quorum()
-        miner.generate(5)
-        self.sync_blocks()
+        time.sleep(5)
         for i in range(len(self.nodes)):
             assert_equal(True, self.nodes[i].quorum_sigs_cmd("hasrecsig", 100, id, msgHash))
         self.log.info("Threshold signature is still valid after the corresponding quorum went inactive!")
