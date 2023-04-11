@@ -839,7 +839,13 @@ UniValue signrawtransaction(const JSONRPCRequest& request)
             ProduceSignature(MutableTransactionSignatureCreator(&keystore, &mtx, i, amount, nHashType), prevPubKey, sigdata, sigversion, fColdStake);
         sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, amount), sigdata, DataFromTransaction(mtx, i));
 
-        UpdateTransaction(mtx, i, sigdata);
+        // ... and merge in other signatures:
+        for (const CMutableTransaction& txv : txVariants) {
+            sigdata.MergeSignatureData(DataFromTransaction(txv, i, coin.out));
+        }
+
+        ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&mergedTx, i, coin.out.nValue, 1), coin.out.scriptPubKey, sigdata, sigversion, fColdStake);
+        UpdateTransaction(mergedTx, i, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;
         if (!VerifyScript(txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,

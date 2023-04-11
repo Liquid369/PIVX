@@ -47,12 +47,14 @@ struct FlatSigningProvider final : public SigningProvider
     std::map<CKeyID, CPubKey> pubkeys;
     std::map<CKeyID, CKey> keys;
 
-    bool GetCScript(const CScriptID& scriptid, CScript& script) const override;
-    bool GetPubKey(const CKeyID& keyid, CPubKey& pubkey) const override;
-    bool GetKey(const CKeyID& keyid, CKey& key) const override;
+    virtual bool GetCScript(const CScriptID &scriptid, CScript& script) const { return false; }
+    virtual bool GetPubKey(const CKeyID &address, CPubKey& pubkey) const { return false; }
+    virtual bool GetKey(const CKeyID &address, CKey& key) const { return false; }
 };
 
 FlatSigningProvider Merge(const FlatSigningProvider& a, const FlatSigningProvider& b);
+
+extern const SigningProvider& DUMMY_SIGNING_PROVIDER;
 
 /** Virtual base class for signature creators. */
 class BaseSignatureCreator {
@@ -98,11 +100,21 @@ public:
     bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const;
 };
 
+typedef std::pair<CPubKey, std::vector<unsigned char>> SigPair;
+
+// This struct contains information from a transaction input and also contains signatures for that input.
+// The information contained here can be used to create a signature and is also filled by ProduceSignature
+// in order to construct final scriptSigs
 struct SignatureData {
-    CScript scriptSig;
+    bool complete = false; ///< Stores whether the scriptSig is complete
+    CScript scriptSig; ///< The scriptSig of an input. Contains complete signatures or the traditional partial signatures format
+    CScript redeem_script; ///< The redeemScript (if any) for the input
+    CScript witness_script; ///< The witnessScript (if any) for the input. witnessScripts are used in P2WSH outputs.
+    std::map<CKeyID, SigPair> signatures; ///< BIP 174 style partial signatures for the input. May contain all signatures necessary for producing a final scriptSig.
 
     SignatureData() {}
     explicit SignatureData(const CScript& script) : scriptSig(script) {}
+    void MergeSignatureData(SignatureData sigdata);
 };
 
 /** Produce a script signature using a generic signature creator. */
@@ -112,11 +124,8 @@ bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& fromPu
 bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, const CAmount& amount, int nHashType, bool fColdStake = false);
 bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType, bool fColdStake = false);
 
-/** Combine two script signatures using a generic signature checker, intelligently, possibly with OP_0 placeholders. */
-SignatureData CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker, const SignatureData& scriptSig1, const SignatureData& scriptSig2);
-
-/** Extract signature data from a transaction, and insert it. */
-SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn);
+/** Extract signature data from a transaction input, and insert it. */
+SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn, const CTxOut& txout);
 void UpdateTransaction(CMutableTransaction& tx, unsigned int nIn, const SignatureData& data);
 
 /* Check whether we know how to sign for an output like this, assuming we
