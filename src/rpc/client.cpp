@@ -30,6 +30,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     { "addmultisigaddress", 1, "keys" },
     { "addpeeraddress", 1, "port" },
     { "cleanbudget", 0, "try_sync" },
+    { "combinerawtransaction", 0, "txs" },
     { "createmultisig", 0, "nrequired" },
     { "createmultisig", 1, "keys" },
     { "createrawtransaction", 0, "inputs" },
