@@ -539,7 +539,7 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
         const CScript& prevPubKey = coin.out.scriptPubKey;
         const CAmount& amount = coin.out.nValue;
 
-        SignatureData sigdata;
+        SignatureData sigdata = DataFromTransaction(mergedTx, i, coin.out);
         SigVersion sigversion =  mergedTx.GetRequiredSigVersion();
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.vout.size()))
@@ -552,10 +552,6 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
                     false // no cold stake
             );
 
-        // ... and merge in other signatures:
-        for (const CTransaction& txv : txVariants) {
-            sigdata = CombineSignatures(prevPubKey, MutableTransactionSignatureChecker(&mergedTx, i, amount), sigdata, DataFromTransaction(txv, i));
-        }
         UpdateTransaction(mergedTx, i, sigdata);
         if (!VerifyScript(txin.scriptSig, prevPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
                 MutableTransactionSignatureChecker(&mergedTx, i, amount), sigversion))

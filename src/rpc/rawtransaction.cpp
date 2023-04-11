@@ -771,9 +771,10 @@ UniValue signrawtransaction(const JSONRPCRequest& request)
 
         // ... and merge in other signatures:
         for (const CMutableTransaction& txv : txVariants) {
-            sigdata = CombineSignatures(prevPubKey, TransactionSignatureChecker(&txConst, i, amount), sigdata, DataFromTransaction(txv, i));
+            sigdata.MergeSignatureData(DataFromTransaction(txv, i, coin.out));
         }
 
+        ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&mergedTx, i, coin.out.nValue, 1), coin.out.scriptPubKey, sigdata, sigversion, fColdStake);
         UpdateTransaction(mergedTx, i, sigdata);
 
         ScriptError serror = SCRIPT_ERR_OK;
