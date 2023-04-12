@@ -879,10 +879,13 @@ BOOST_AUTO_TEST_CASE(script_CHECKMULTISIG23)
 /* Wrapper around ProduceSignature to combine two scriptsigs */
 SignatureData CombineSignatures(const CTxOut& txout, const CMutableTransaction& tx, const SignatureData& scriptSig1, const SignatureData& scriptSig2)
 {
+    bool fColdStake = false;
+    SigVersion sigversion = SIGVERSION_BASE;
+    ScriptError serror;
     SignatureData data;
     data.MergeSignatureData(scriptSig1);
     data.MergeSignatureData(scriptSig2);
-    ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&tx, 0, txout.nValue), txout.scriptPubKey, data);
+    ProduceSignature(DUMMY_SIGNING_PROVIDER, MutableTransactionSignatureCreator(&tx, 0, txout.nValue, SIGHASH_ALL), txout.scriptPubKey, data, sigversion, fColdStake);
 
     return data;
 }
