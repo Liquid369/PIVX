@@ -466,8 +466,8 @@ void StopHTTPServer()
         LogPrint(BCLog::HTTP, "Waiting for HTTP worker threads to exit\n");
         for (auto& thread : g_thread_http_workers) {
             // Guard threadHTTP
-            if (threadHTTP.joinable()) {
-                threadHTTP.join();
+            if (thread.joinable()) {
+                thread.join();
             }
         }
         g_thread_http_workers.clear();
