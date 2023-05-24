@@ -429,6 +429,9 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
     // Update lastPing for our masternode in Masternode list
     CMasternode* pmn = mnodeman.Find(vin->prevout);
     if (pmn != nullptr) {
+        CMasternodeBroadcast mnb(*pmn);
+        uint256 hash = mnb.GetHash();
+
         if (pmn->IsPingedWithin(MasternodePingSeconds(), mnp.sigTime)) {
             errorMessage = "Too early to send Masternode Ping";
             return false;
@@ -439,8 +442,6 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
         mnodeman.mapSeenMasternodePing.emplace(mnp.GetHash(), mnp);
 
         //mnodeman.mapSeenMasternodeBroadcast.lastPing is probably outdated, so we'll update it
-        CMasternodeBroadcast mnb(*pmn);
-        uint256 hash = mnb.GetHash();
         if (mnodeman.mapSeenMasternodeBroadcast.count(hash)) {
             // SetLastPing locks the masternode cs, be careful with the lock order.
             // TODO: check why are we double setting the last ping here..

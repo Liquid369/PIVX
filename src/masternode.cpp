@@ -567,6 +567,9 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireAvailable, bool fCh
             return false;
         }
 
+        CMasternodeBroadcast mnb(*pmn);
+        const uint256& hash = mnb.GetHash();
+
         // update only if there is no known ping for this masternode or
         // last ping was more then MASTERNODE_MIN_MNP_SECONDS-60 ago comparing to this one
         if (!pmn->IsPingedWithin(MasternodeMinPingSeconds() - 60, sigTime)) {
@@ -581,9 +584,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireAvailable, bool fCh
             // SetLastPing locks masternode cs. Be careful with the lock ordering.
             pmn->SetLastPing(*this);
 
-            //mnodeman.mapSeenMasternodeBroadcast.lastPing is probably outdated, so we'll update it
-            CMasternodeBroadcast mnb(*pmn);
-            const uint256& hash = mnb.GetHash();
+            //mnodeman.mapSeenMasternodeBroadcast.lastPing is probably outdated or empty/null, so we'll update it
             if (mnodeman.mapSeenMasternodeBroadcast.count(hash)) {
                 mnodeman.mapSeenMasternodeBroadcast[hash].lastPing = *this;
             }
@@ -595,7 +596,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireAvailable, bool fCh
             Relay();
             return true;
         }
-        LogPrint(BCLog::MNPING, "%s: Masternode ping arrived too early, vin: %s\n", __func__, vin.prevout.hash.ToString());
+        LogPrint(BCLog::MNPING, "%s: Masternode ping arrived too early, vin: %s, sigTime: %lli\n", __func__, vin.prevout.hash.ToString(), sigTime);
         //nDos = 1; //disable, this is happening frequently and causing banned peers
         return false;
     }
