@@ -157,7 +157,7 @@ void SendWidget::refreshAmounts()
             selectedBalance += coin.value;
         }
         totalAmount = selectedBalance - total;
-        titleTotalRemaining = tr("Total remaining from the selected UTXO");
+        titleTotalRemaining = tr("Remaining (Selected UTXO)");
     } else {
         interfaces::WalletBalances balances = walletModel->GetWalletBalances();
         if (isTransparent) {

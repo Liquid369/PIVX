@@ -516,6 +516,9 @@ padding-top:2px;
                 <height>60</height>
                </size>
               </property>
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
               <widget class="QWidget" name="page1">
                <layout class="QVBoxLayout" name="verticalLayout_71" stretch="0">
                 <property name="spacing">
@@ -672,7 +675,7 @@ padding-top:2px;
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
+             <enum>QSizePolicy::MinimumExpanding</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
