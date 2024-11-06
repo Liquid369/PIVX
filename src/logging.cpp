@@ -123,6 +123,7 @@ const CLogCategoryDesc LogCategories[] = {
         {BCLog::SPORKS,         "sporks"},
         {BCLog::VALIDATION,     "validation"},
         {BCLog::LLMQ,           "llmq"},
+        {BCLog::LLMQSIG,        "llmq-sig"},
         {BCLog::NET_MN,         "net_mn"},
         {BCLog::DKG,            "dkg"},
         {BCLog::ALL,            "1"},
