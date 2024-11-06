@@ -178,7 +178,7 @@ void CChainLocksHandler::AcceptedBlockHeader(const CBlockIndex* pindexNew)
     }
 }
 
-void CChainLocksHandler::UpdatedBlockTip(const CBlockIndex* pindexNew, const CBlockIndex* pindexFork)
+void CChainLocksHandler::UpdatedBlockTip(const CBlockIndex* pindexNew)
 {
     if (!fMasterNode) {
         return;
