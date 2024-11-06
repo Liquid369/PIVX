@@ -172,7 +172,7 @@ bool CDKGSessionHandler::InitNewQuorum(const CBlockIndex* pindexQuorum)
     auto mns = deterministicMNManager->GetAllQuorumMembers(params.type, pindexQuorum);
 
     if (!curSession->Init(pindexQuorum, mns, activeMasternodeManager->GetProTx())) {
-        LogPrintf("CDKGSessionHandler::%s -- quorum initialization failed for %s\n", __func__, curSession->params.name);
+        LogPrint(BCLog::DKG, "CDKGSessionHandler::%s -- quorum initialization failed for %s\n", __func__, curSession->params.name);
         return false;
     }
 
@@ -516,7 +516,7 @@ void CDKGSessionHandler::HandleDKGRound()
     const CBlockIndex* pindexQuorum = WITH_LOCK(cs_main, return LookupBlockIndex(curQuorumHash));
     if (!pindexQuorum) {
         // should never happen
-        LogPrintf("%s: ERROR: Unable to find block %s\n", __func__, curQuorumHash.ToString());
+        LogPrint(BCLog::DKG, "%s: ERROR: Unable to find block %s\n", __func__, curQuorumHash.ToString());
         return;
     }
 
@@ -591,7 +591,7 @@ void CDKGSessionHandler::PhaseHandlerThread()
                 status.aborted = true;
                 return true;
             });
-            LogPrintf("CDKGSessionHandler::%s -- aborted current DKG session\n", __func__);
+            LogPrint(BCLog::DKG, "CDKGSessionHandler::%s -- aborted current DKG session\n", __func__);
         }
     }
 }
