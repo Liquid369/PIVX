@@ -74,6 +74,11 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats& stats);
 void Misbehaving(NodeId nodeid, int howmuch, const std::string& message="") EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 bool IsBanned(NodeId nodeid);
 
+void EraseObjectRequest(NodeId nodeId, const CInv& inv);
+void RequestObject(NodeId nodeId, const CInv& inv, std::chrono::microseconds current_time, bool fForce=false);
+size_t GetRequestedObjectCount(NodeId nodeId);
+
+#endif // BITCOIN_NET_PROCESSING_H
 
 using SecondsDouble = std::chrono::duration<double, std::chrono::seconds::period>;
 /**

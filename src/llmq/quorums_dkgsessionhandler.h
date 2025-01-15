@@ -38,14 +38,15 @@ public:
     typedef std::pair<NodeId, std::shared_ptr<CDataStream>> BinaryMessage;
 
 private:
-    mutable RecursiveMutex cs;
+    mutable CCriticalSection cs;
+    int invType;
     size_t maxMessagesPerNode;
     std::list<BinaryMessage> pendingMessages;
     std::map<NodeId, size_t> messagesPerNode;
     std::set<uint256> seenMessages;
 
 public:
-    explicit CDKGPendingMessages(size_t _maxMessagesPerNode);
+    explicit CDKGPendingMessages(size_t _maxMessagesPerNode, int _invType);
 
     void PushPendingMessage(NodeId from, CDataStream& vRecv, int invType);
     std::list<BinaryMessage> PopPendingMessages(size_t maxCount);

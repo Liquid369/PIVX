@@ -11,8 +11,8 @@
 #include "crypto/common.h"
 #include "uint256.h"
 
-#include <stdint.h>
-#include <limits>
+#include <chrono> // For std::chrono::microseconds
+#include <cstdint>
 
 /**
  * Overall design of the RNG and entropy sources.
@@ -66,10 +66,11 @@
  *
  * Thread-safe.
  */
-void GetRandBytes(unsigned char* buf, int num) noexcept;
-uint64_t GetRand(uint64_t nMax) noexcept;
-int GetRandInt(int nMax) noexcept;
-uint256 GetRandHash() noexcept;
+void GetRandBytes(unsigned char* buf, int num);
+uint64_t GetRand(uint64_t nMax);
+std::chrono::microseconds GetRandMicros(std::chrono::microseconds duration_max) noexcept;
+int GetRandInt(int nMax);
+uint256 GetRandHash();
 
 bool GetRandBool(double rate) noexcept;
 

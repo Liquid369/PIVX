@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "bench/bench.h"
+#include <bench/bench.h>
 
-#include "utiltime.h"
+#include <utiltime.h>
 
 static void BenchTimeDeprecated(benchmark::State& state)
 {
@@ -36,7 +36,7 @@ static void BenchTimeMillisSys(benchmark::State& state)
     }
 }
 
-BENCHMARK(BenchTimeDeprecated, 100000000);
-BENCHMARK(BenchTimeMillis, 6000000);
-BENCHMARK(BenchTimeMillisSys, 6000000);
-BENCHMARK(BenchTimeMock, 300000000);
+BENCHMARK(BenchTimeDeprecated/*, 100000000*/);
+BENCHMARK(BenchTimeMillis/*, 6000000*/);
+BENCHMARK(BenchTimeMillisSys/*, 6000000*/);
+BENCHMARK(BenchTimeMock/*, 300000000*/);

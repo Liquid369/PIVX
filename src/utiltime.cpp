@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2019 The Bitcoin Core developers
 // Copyright (c) 2016-2021 The PIVX Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -41,8 +41,8 @@ T GetTime()
 
     return std::chrono::duration_cast<T>(
         mocktime.count() ?
-        mocktime :
-        std::chrono::microseconds{GetTimeMicros()});
+            mocktime :
+            std::chrono::microseconds{GetTimeMicros()});
 }
 template std::chrono::seconds GetTime();
 template std::chrono::milliseconds GetTime();

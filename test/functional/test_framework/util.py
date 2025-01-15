@@ -362,6 +362,110 @@ def set_node_times(nodes, t):
     for node in nodes:
         node.setmocktime(t)
 
+def disconnect_nodes(from_connection, node_num):
+    for peer_id in [peer['id'] for peer in from_connection.getpeerinfo() if "testnode%d" % node_num in peer['subver']]:
+        try:
+            from_connection.disconnectnode(nodeid=peer_id)
+        except JSONRPCException as e:
+            # If this node is disconnected between calculating the peer id
+            # and issuing the disconnect, don't worry about it.
+            # This avoids a race condition if we're mass-disconnecting peers.
+            if e.error['code'] != -29: # RPC_CLIENT_NODE_NOT_CONNECTED
+                raise
+
+    # wait to disconnect
+    wait_until(lambda: [peer['id'] for peer in from_connection.getpeerinfo() if "testnode%d" % node_num in peer['subver']] == [], timeout=5)
+
+def connect_nodes(from_connection, node_num):
+    ip_port = "127.0.0.1:" + str(p2p_port(node_num))
+    from_connection.addnode(ip_port, "onetry")
+    # poll until version handshake complete to avoid race conditions
+    # with transaction relaying
+    wait_until(lambda:  all(peer['version'] != 0 for peer in from_connection.getpeerinfo()))
+
+def connect_nodes_bi(nodes, a, b):
+    connect_nodes(nodes[a], b)
+    connect_nodes(nodes[b], a)
+
+def isolate_node(node, timeout=5):
+    node.setnetworkactive(False)
+    st = time.time()
+    while time.time() < st + timeout:
+        if node.getconnectioncount() == 0:
+            return
+        time.sleep(0.5)
+    raise AssertionError("disconnect_node timed out")
+
+def reconnect_isolated_node(node, node_num):
+    node.setnetworkactive(True)
+    connect_nodes(node, node_num)
+
+def sync_blocks(rpc_connections, *, wait=1, timeout=60):
+    """
+    Wait until everybody has the same tip.
+
+    sync_blocks needs to be called with an rpc_connections set that has least
+    one node already synced to the latest, stable tip, otherwise there's a
+    chance it might return before all nodes are stably synced.
+    """
+    # Use getblockcount() instead of waitforblockheight() to determine the
+    # initial max height because the two RPCs look at different internal global
+    # variables (chainActive vs latestBlock) and the former gets updated
+    # earlier.
+    maxheight = max(x.getblockcount() for x in rpc_connections)
+    start_time = cur_time = time.time()
+    while cur_time <= start_time + timeout:
+        tips = [r.waitforblockheight(maxheight, int(wait * 1000)) for r in rpc_connections]
+        if all(t["height"] == maxheight for t in tips):
+            if all(t["hash"] == tips[0]["hash"] for t in tips):
+                return
+            raise AssertionError("Block sync failed, mismatched block hashes:{}".format(
+                                 "".join("\n  {!r}".format(tip) for tip in tips)))
+        cur_time = time.time()
+    raise AssertionError("Block sync to height {} timed out:{}".format(
+                         maxheight, "".join("\n  {!r}".format(tip) for tip in tips)))
+
+def sync_chain(rpc_connections, *, wait=1, timeout=60):
+    """
+    Wait until everybody has the same best block
+    """
+    while timeout > 0:
+        best_hash = [x.getbestblockhash() for x in rpc_connections]
+        if best_hash == [best_hash[0]] * len(best_hash):
+            return
+        time.sleep(wait)
+        timeout -= wait
+    raise AssertionError("Chain sync failed: Best block hashes don't match")
+
+def sync_mempools(rpc_connections, *, wait=1, timeout=60, wait_func=None):
+    """
+    Wait until everybody has the same transactions in their memory
+    pools
+    """
+    while timeout > 0:
+        pool = set(rpc_connections[0].getrawmempool())
+        num_match = 1
+        for i in range(1, len(rpc_connections)):
+            if set(rpc_connections[i].getrawmempool()) == pool:
+                num_match = num_match + 1
+        if num_match == len(rpc_connections):
+            return
+        if wait_func is not None:
+            wait_func()
+        time.sleep(wait)
+        timeout -= wait
+    raise AssertionError("Mempool sync failed")
+
+def force_finish_mnsync(node):
+    """
+    Masternodes won't accept incoming connections while IsSynced is false.
+    Force them to switch to this state to speed things up.
+    """
+    while True:
+        if node.mnsync("status")['IsSynced']:
+            break
+        node.mnsync("next")
+
 # Transaction/Block functions
 #############################
 

@@ -86,11 +86,15 @@ static const int MAX_ADDNODE_CONNECTIONS = 16;
 static const int INBOUND_EVICTION_PROTECTION_TIME = 1;
 /** -listen default */
 static const bool DEFAULT_LISTEN = true;
-/** The maximum number of entries in mapAskFor */
-static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
-/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
-static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
-/** The maximum number of peer connections to maintain. */
+/** -upnp default */
+#ifdef USE_UPNP
+static const bool DEFAULT_UPNP = USE_UPNP;
+#else
+static const bool DEFAULT_UPNP = false;
+#endif
+/** The maximum number of peer connections to maintain.
+ *  Masternodes are forced to accept at least this many connections
+ */
 static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 125;
 /** Disconnected peers are added to setOffsetDisconnectedPeers only if node has less than ENOUGH_CONNECTIONS */
 #define ENOUGH_CONNECTIONS 2
@@ -299,8 +303,11 @@ public:
     std::vector<CNode*> CopyNodeVector();
     void ReleaseNodeVector(const std::vector<CNode*>& vecNodes);
 
-    // Clears AskFor requests for every known peer
-    void RemoveAskFor(const uint256& invHash, int invType);
+    void RelayTransaction(const CTransaction& tx);
+    void RelayInv(CInv &inv, const int minProtoVersion = MIN_PEER_PROTO_VERSION, bool fAllowMasternodeConnections = false);
+    void RelayInvFiltered(CInv &inv, const CTransaction &relatedTx, const int minProtoVersion = MIN_PEER_PROTO_VERSION, bool fAllowMasternodeConnections = false);
+    // This overload will not update node filters,  so use it only for the cases when other messages will update related transaction data in filters
+    void RelayInvFiltered(CInv &inv, const uint256 &relatedTxHash, const int minProtoVersion = MIN_PEER_PROTO_VERSION, bool fAllowMasternodeConnections = false);
 
     void RelayInv(CInv& inv, int minProtoVersion = ActiveProtocol());
     bool IsNodeConnected(const CAddress& addr);
@@ -568,8 +575,6 @@ bool validateMasternodeIP(const std::string& addrStr);          // valid, reacha
 extern bool fDiscover;
 extern bool fListen;
 
-extern limitedmap<CInv, int64_t> mapAlreadyAskedFor;
-
 /** Subversion as sent to the P2P network in `version` messages */
 extern std::string strSubVersion;
 
@@ -770,13 +775,13 @@ public:
     // There is no final sorting before sending, as they are always sent immediately
     // and in the order requested.
     std::vector<uint256> vInventoryBlockToSend;
-    // Set of tier two messages ids we still have to announce.
-    std::vector<CInv> vInventoryTierTwoToSend;
-    RecursiveMutex cs_inventory;
-    std::multimap<int64_t, CInv> mapAskFor;
-    std::set<uint256> setAskFor;
-    std::vector<uint256> vBlockRequested;
-    std::chrono::microseconds nNextInvSend{0};
+    // List of non-tx/non-block inventory items
+    std::vector<CInv> vInventoryOtherToSend;
+    CCriticalSection cs_inventory;
+    int64_t nNextInvSend;
+    // Used for headers announcements - unfiltered blocks to relay
+    // Also protected by cs_inventory
+    std::vector<uint256> vBlockHashesToAnnounce;
     // Used for BIP35 mempool sending, also protected by cs_inventory
     bool fSendMempool;
 
@@ -925,9 +930,11 @@ public:
         }
     }
 
-    void AskFor(const CInv& inv, int64_t doubleRequestDelay = 2 * 60 * 1000000);
-    // inv response received, clear it from the waiting inv set.
-    void AskForInvReceived(const uint256& invHash);
+    void PushBlockHash(const uint256 &hash)
+    {
+        LOCK(cs_inventory);
+        vBlockHashesToAnnounce.push_back(hash);
+    }
 
     void CloseSocketDisconnect();
     bool DisconnectOldProtocol(int nVersionIn, int nVersionRequired);

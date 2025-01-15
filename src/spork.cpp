@@ -111,11 +111,13 @@ int CSporkManager::ProcessSporkMsg(CSporkMessage& spork)
     std::string strSpork = sporkManager.GetSporkNameByID(spork.nSporkID);
     if (strSpork == "Unknown") return 0;
 
-    // Do not accept sporks signed way too far into the future
-    if (spork.nTimeSigned > GetAdjustedTime() + 2 * 60 * 60) {
-        LogPrint(BCLog::SPORKS, "%s : ERROR: too far into the future\n", __func__);
-        return 100;
-    }
+        std::string strLogMsg;
+        {
+            LOCK(cs_main);
+            EraseObjectRequest(pfrom->GetId(), CInv(MSG_SPORK, hash));
+            if(!chainActive.Tip()) return;
+            strLogMsg = strprintf("SPORK -- hash: %s id: %d value: %10d bestHeight: %d peer=%d", hash.ToString(), spork.nSporkID, spork.nValue, chainActive.Height(), pfrom->GetId());
+        }
 
     // reject old signature version
     if (spork.nMessVersion != MessageVersion::MESS_VER_HASH) {

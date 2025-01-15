@@ -458,6 +458,10 @@ class PivxTestFramework():
         self.sync_blocks(nodes)
         self.sync_mempools(nodes)
 
+    def bump_mocktime(self, t, update_nodes=False):
+        self.mocktime += t
+        if update_nodes:
+            set_node_times(self.nodes, self.mocktime)
     def enable_mocktime(self):
         """Enable mocktime for the script.
 
