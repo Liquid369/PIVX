@@ -6,10 +6,10 @@
 #ifndef PIVX_QT_ASKPASSPHRASEDIALOG_H
 #define PIVX_QT_ASKPASSPHRASEDIALOG_H
 
-#include <QDialog>
-#include "qt/pivx/prunnable.h"
+#include "prunnable.h"
 #include "support/allocators/secure.h"
 #include <QCheckBox>
+#include <QDialog>
 
 class WalletModel;
 class PIVXGUI;

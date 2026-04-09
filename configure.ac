@@ -570,12 +570,13 @@ case $host in
          dnl It's safe to add these paths even if the functionality is disabled by
          dnl the user (--without-wallet or --without-gui for example).
 
-         bdb_prefix=`$BREW --prefix berkeley-db4 2>/dev/null`
          qt5_prefix=`$BREW --prefix qt5 2>/dev/null`
          gmp_prefix=`$BREW --prefix gmp 2>/dev/null`
-         if test x$bdb_prefix != x; then
-           CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
-           LIBS="$LIBS -L$bdb_prefix/lib"
+         if $BREW list --versions berkeley-db@4 >/dev/null && test "x$BDB_CFLAGS" = "x" && test "x$BDB_LIBS" = "x"; then
+           bdb_prefix=$($BREW --prefix berkeley-db@4 2>/dev/null)
+           dnl This must precede the call to BITCOIN_FIND_BDB48 below.
+           BDB_CFLAGS="-I$bdb_prefix/include"
+           BDB_LIBS="-L$bdb_prefix/lib -ldb_cxx-4.8"
          fi
          if test x$qt5_prefix != x; then
            PKG_CONFIG_PATH="$qt5_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -594,7 +595,8 @@ case $host in
          *)
            AC_PATH_TOOL([INSTALLNAMETOOL], [install_name_tool], [install_name_tool])
            AC_PATH_TOOL([OTOOL], [otool], [otool])
-           AC_PATH_PROGS([GENISOIMAGE], [genisoimage mkisofs], [genisoimage])
+           AC_PATH_PROGS([XORRISOFS], [xorrisofs], [xorrisofs])
+           AC_PATH_PROGS([DMG], [dmg], [dmg])
            AC_PATH_PROGS([RSVG_CONVERT], [rsvg-convert rsvg], [rsvg-convert])
            AC_PATH_PROGS([IMAGEMAGICK_CONVERT], [convert], [convert])
            AC_PATH_PROGS([TIFFCP], [tiffcp], [tiffcp])
@@ -1167,6 +1169,14 @@ if test x$use_pkgconfig = xyes; then
           PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads], [], [AC_MSG_ERROR([libevent_pthreads not found.])])
         fi
         PKG_CHECK_MODULES([SODIUM], [libsodium], [], [AC_MSG_ERROR([libsodium not found.])])
+        dnl Ubuntu Bionic's libgmp-dev package doesn't include pkgconfig files,
+        dnl so we need to do some gymnastics here.
+        dnl TODO: Remove this drill down once Ubuntu Bionic is no longer supported.
+        PKG_CHECK_MODULES([GMP], [gmp], [], [
+          AC_CHECK_HEADER([gmp.h], [
+            AC_CHECK_LIB([gmp], [__gmpz_init], [LIBS="$LIBS -lgmp"], [AC_MSG_ERROR([libgmp missing])])
+          ], [AC_MSG_ERROR([libgmp headers missing])])
+        ])
       fi
 
       if test "x$use_zmq" = "xyes"; then
@@ -1190,6 +1200,8 @@ else
     fi
     AC_CHECK_HEADER([sodium/core.h], [], [AC_MSG_ERROR([libsodium headers missing])])
     AC_CHECK_LIB([sodium], [main], [SODIUM_LIBS=-lsodium], [AC_MSG_ERROR([libsodium missing])])
+    AC_CHECK_HEADER([gmp.h], [], [AC_MSG_ERROR([libgmp headers missing])])
+    AC_CHECK_LIB([gmp], [__gmpz_init], [LIBS="$LIBS -lgmp"], [AC_MSG_ERROR([libgmp missing])])
   fi
 
   if test "x$use_zmq" = "xyes"; then
@@ -1221,12 +1233,6 @@ else
     BITCOIN_QT_CHECK([AC_CHECK_LIB([Qt5Charts], [main], [CHARTS_LIBS=-lQt5Charts], [have_qtcharts=no])])
     BITCOIN_QT_CHECK([AC_CHECK_HEADER([QtCharts/qchartview.h], [], [have_qtcharts=no])])
   fi
-fi
-
-dnl gmp check
-GMP_CHECK
-if test x"$has_gmp" != x"yes"; then
-  AC_MSG_ERROR([libgmp not found])
 fi
 
 dnl univalue check

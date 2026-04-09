@@ -1,6 +1,6 @@
 PACKAGE=qt
 $(package)_version=5.9.7
-$(package)_download_path=https://download.qt.io/archive/qt/5.9/$($(package)_version)/submodules
+$(package)_download_path=https://download.qt.io/new_archive/qt/5.9/$($(package)_version)/submodules
 $(package)_suffix=opensource-src-$($(package)_version).tar.xz
 $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=36dd9574f006eaa1e5af780e4b33d11fe39d09fd7c12f3b9d83294174bd28f00
@@ -8,7 +8,7 @@ $(package)_dependencies=zlib
 $(package)_linux_dependencies=freetype fontconfig libxcb
 $(package)_build_subdir=qtbase
 $(package)_qt_libs=corelib network widgets gui plugins testlib concurrent
-$(package)_patches=fix_qt_pkgconfig.patch mac-qmake.conf fix_configure_mac.patch fix_no_printer.patch fix_rcc_determinism.patch fix_riscv64_arch.patch fix_s390x_powerpc_mips_mipsel_architectures.patch xkb-default.patch no-xlib.patch fix_qpainter_non_determinism.patch
+$(package)_patches=fix_qt_pkgconfig.patch mac-qmake.conf fix_configure_mac.patch fix_no_printer.patch fix_rcc_determinism.patch fix_riscv64_arch.patch fix_s390x_powerpc_mips_mipsel_architectures.patch xkb-default.patch no-xlib.patch fix_qpainter_non_determinism.patch fix_gcc_11.patch
 
 $(package)_qttranslations_file_name=qttranslations-$($(package)_suffix)
 $(package)_qttranslations_sha256_hash=b36da7d93c3ab6fca56b32053bb73bc619c8b192bb89b74e3bcde2705f1c2a14
@@ -19,12 +19,16 @@ $(package)_qttools_sha256_hash=d62e0f70d99645d6704dbb8976fb2222443061743689943d4
 $(package)_qtsvg_file_name=qtsvg-$($(package)_suffix)
 $(package)_qtsvg_sha256_hash=628f22b8472e96ed8033d5491286ce2ab5b2c7b9fe0fe468acd78b458dc75564
 
+$(package)_qtimageformats_file_name=qtimageformats-$($(package)_suffix)
+$(package)_qtimageformats_sha256_hash=62053e66014c12edb56a05d2406c78c6b96fc66c2b5aa633e984c9fef398c0aa
+
 $(package)_qtcharts_file_name=qtcharts-$($(package)_suffix)
 $(package)_qtcharts_sha256_hash=16cd367241b2e0cd3bc8aea6f874598cd18ad83b72eed89f2713b777272572e6
 
 $(package)_extra_sources  = $($(package)_qttranslations_file_name)
 $(package)_extra_sources += $($(package)_qttools_file_name)
 $(package)_extra_sources += $($(package)_qtsvg_file_name)
+$(package)_extra_sources += $($(package)_qtimageformats_file_name)
 $(package)_extra_sources += $($(package)_qtcharts_file_name)
 
 define $(package)_set_vars
@@ -136,6 +140,7 @@ $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_f
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttranslations_file_name),$($(package)_qttranslations_file_name),$($(package)_qttranslations_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttools_file_name),$($(package)_qttools_file_name),$($(package)_qttools_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtsvg_file_name),$($(package)_qtsvg_file_name),$($(package)_qtsvg_sha256_hash)) && \
+$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtimageformats_file_name),$($(package)_qtimageformats_file_name),$($(package)_qtimageformats_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qtcharts_file_name),$($(package)_qtcharts_file_name),$($(package)_qtcharts_sha256_hash))
 endef
 
@@ -145,6 +150,7 @@ define $(package)_extract_cmds
   echo "$($(package)_qttranslations_sha256_hash)  $($(package)_source_dir)/$($(package)_qttranslations_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qttools_sha256_hash)  $($(package)_source_dir)/$($(package)_qttools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtsvg_sha256_hash)  $($(package)_source_dir)/$($(package)_qtsvg_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtimageformats_sha256_hash)  $($(package)_source_dir)/$($(package)_qtimageformats_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qtcharts_sha256_hash)  $($(package)_source_dir)/$($(package)_qtcharts_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
@@ -155,6 +161,8 @@ define $(package)_extract_cmds
   tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools && \
   mkdir qtsvg && \
   tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtsvg_file_name) -C qtsvg && \
+  mkdir qtimageformats && \
+  tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtimageformats_file_name) -C qtimageformats && \
   mkdir qtcharts && \
   tar --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtcharts_file_name) -C qtcharts
 endef
@@ -185,6 +193,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/fix_rcc_determinism.patch &&\
   patch -p1 -i $($(package)_patch_dir)/xkb-default.patch &&\
   patch -p1 -i $($(package)_patch_dir)/fix_qpainter_non_determinism.patch &&\
+  patch -p1 -i $($(package)_patch_dir)/fix_gcc_11.patch &&\
   echo "!host_build: QMAKE_CFLAGS     += $($(package)_cflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
   echo "!host_build: QMAKE_CXXFLAGS   += $($(package)_cxxflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
   echo "!host_build: QMAKE_LFLAGS     += $($(package)_ldflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
@@ -215,6 +224,10 @@ define $(package)_config_cmds
   cd qtsvg/src/plugins && ../../../qtbase/bin/qmake plugins.pro -o Makefile && cd ../../.. && \
   cd qtsvg/src/plugins/imageformats && ../../../../qtbase/bin/qmake imageformats.pro -o Makefile && cd ../../../.. && \
   cd qtsvg/src/plugins/imageformats/svg && ../../../../../qtbase/bin/qmake svg.pro -o Makefile && cd ../../../../.. && \
+  cd qtimageformats && ../qtbase/bin/qmake qtimageformats.pro -o Makefile && cd .. && \
+  cd qtimageformats/src/plugins && ../../../qtbase/bin/qmake plugins.pro -o Makefile && cd ../../.. && \
+  cd qtimageformats/src/plugins/imageformats && ../../../../qtbase/bin/qmake imageformats.pro -o Makefile && cd ../../../.. && \
+  cd qtimageformats/src/plugins/imageformats/webp && ../../../../../qtbase/bin/qmake webp.pro -o Makefile && cd ../../../../.. && \
   cd qtcharts && ../qtbase/bin/qmake qtcharts.pro -o Makefile
 endef
 
@@ -227,6 +240,8 @@ define $(package)_build_cmds
   $(MAKE) -C ../qtsvg/ && \
   $(MAKE) -C ../qtsvg/src/svg && \
   $(MAKE) -C ../qtsvg/src/plugins/imageformats && \
+  $(MAKE) -C ../qtimageformats/ && \
+  $(MAKE) -C ../qtimageformats/src/plugins/imageformats && \
   $(MAKE) -C ../qtcharts/
 endef
 
@@ -235,6 +250,7 @@ define $(package)_stage_cmds
   $(MAKE) -C qttools/src/linguist/lrelease INSTALL_ROOT=$($(package)_staging_dir) install_target && \
   $(MAKE) -C qttools/src/linguist/lupdate INSTALL_ROOT=$($(package)_staging_dir) install_target && \
   $(MAKE) -C qtsvg INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
+  $(MAKE) -C qtimageformats INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
   $(MAKE) -C qtcharts INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
   $(MAKE) -C qttranslations INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
   if `test -f qtbase/src/plugins/platforms/xcb/xcb-static/libxcb-static.a`; then \

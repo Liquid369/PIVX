@@ -7,8 +7,8 @@
 #define PIVX_QT_COINCONTROLDIALOG_H
 
 #include "amount.h"
-#include "qt/pivx/snackbar.h"
 #include "optional.h"
+#include "snackbar.h"
 #include "uint256.h"
 
 #include <QAbstractButton>

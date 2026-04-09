@@ -288,6 +288,9 @@ void CChainLocksHandler::TrySignChainTip()
 // This should also not be called from validation signals, as this might result in recursive calls
 void CChainLocksHandler::EnforceBestChainLock()
 {
+    AssertLockNotHeld(cs);
+    AssertLockNotHeld(cs_main);
+
     CChainLockSig clsig;
     const CBlockIndex* pindex;
     const CBlockIndex* currentBestChainLockBlockIndex;

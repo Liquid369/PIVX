@@ -5,8 +5,8 @@
 #ifndef PIVX_QT_OPENURIDIALOG_H
 #define PIVX_QT_OPENURIDIALOG_H
 
+#include "snackbar.h"
 #include <QDialog>
-#include "qt/pivx/snackbar.h"
 
 namespace Ui
 {
