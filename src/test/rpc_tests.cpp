@@ -94,6 +94,46 @@ BOOST_AUTO_TEST_CASE(rpc_rawparams)
     BOOST_CHECK_THROW(CallRPC(std::string("sendrawtransaction ")+rawtx+" extra"), std::runtime_error);
 }
 
+BOOST_AUTO_TEST_CASE(rpc_convert_protx_params)
+{
+    // pivx-cli sends every argument as a string unless the method is listed in
+    // vRPCConvertParams. The protx_* handlers call get_int()/get_bool(), which throw on a
+    // string, so a missing entry breaks the RPC from the CLI while leaving it working
+    // over JSON-RPC. Regression for protx_register in particular: it shares a handler with
+    // protx_register_prepare (rpcevo.cpp:444), so registering one without the other left
+    // it broken for the same reason.
+    const std::vector<std::string> collateral_index_rpcs = {"protx_register", "protx_register_prepare"};
+    for (const std::string& method : collateral_index_rpcs) {
+        UniValue p = RPCConvertValues(method, {"deadbeef", "1", "1.2.3.4:51472", "addr", "pk", "addr", "addr"});
+        BOOST_CHECK_MESSAGE(p[1].isNum(), method + " collateralIndex must convert to a number");
+        BOOST_CHECK_EQUAL(p[1].get_int(), 1);
+        // collateralHash stays a string
+        BOOST_CHECK(p[0].isStr());
+    }
+
+    // protx_list: three booleans then a height
+    UniValue pl = RPCConvertValues("protx_list", {"true", "false", "true", "42"});
+    BOOST_CHECK(pl[0].isBool());
+    BOOST_CHECK_EQUAL(pl[0].get_bool(), true);
+    BOOST_CHECK(pl[1].isBool());
+    BOOST_CHECK_EQUAL(pl[1].get_bool(), false);
+    BOOST_CHECK(pl[2].isBool());
+    BOOST_CHECK(pl[3].isNum());
+    BOOST_CHECK_EQUAL(pl[3].get_int(), 42);
+
+    // protx_revoke: reason is numeric, the hash and key before it are not
+    UniValue pr = RPCConvertValues("protx_revoke", {"deadbeef", "operatorkey", "2"});
+    BOOST_CHECK(pr[0].isStr());
+    BOOST_CHECK(pr[1].isStr());
+    BOOST_CHECK(pr[2].isNum());
+    BOOST_CHECK_EQUAL(pr[2].get_int(), 2);
+
+    // operatorReward is read through ParseFixedPoint on getValStr(), which accepts a
+    // string, so it must NOT be converted. Guards against a well-meaning addition.
+    UniValue pf = RPCConvertValues("protx_register_fund", {"addr", "1.2.3.4:51472", "addr", "pk", "addr", "addr", "5.00"});
+    BOOST_CHECK(pf[6].isStr());
+}
+
 BOOST_AUTO_TEST_CASE(rpc_togglenetwork)
 {
     UniValue r;
