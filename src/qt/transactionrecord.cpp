@@ -157,8 +157,24 @@ bool TransactionRecord::decomposeCreditTransaction(const CWallet* wallet, const 
                 sub.address = getValueOrReturnEmpty(wtx.mapValue, "from");
             }
             if (wtx.IsCoinBase()) {
-                // Generated or MN Reward in v6.0
-                sub.type = !Params().GetConsensus().NetworkUpgradeActive(wtx.m_confirm.block_height, Consensus::UPGRADE_V6_0) ? TransactionRecord::Generated : TransactionRecord::MNReward;
+                const Consensus::Params& consensus = Params().GetConsensus();
+                const int nHeight = wtx.m_confirm.block_height;
+                if (!consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_V6_0)) {
+                    sub.type = TransactionRecord::Generated;
+                } else {
+                    // From v6.0 both masternode and budget payments move into the coinbase
+                    // (masternode-payments.cpp:368), so being a coinbase no longer implies a
+                    // masternode reward. Discriminate by value the same way the sibling path
+                    // above does: a superblock pays more than a single masternode reward.
+                    // Cost: a proof-of-work coinbase past v6.0 would read as BudgetPayment.
+                    // Unreachable on mainnet and testnet, both of which are proof-of-stake
+                    // long before v6.0 activates.
+                    const CAmount mn_reward = consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_V5_5)
+                                              ? consensus.nNewMNBlockReward
+                                              : consensus.nMNBlockReward;
+                    sub.type = sub.credit > mn_reward ? TransactionRecord::BudgetPayment
+                                                      : TransactionRecord::MNReward;
+                }
             }
 
             parts.append(sub);
